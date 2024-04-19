@@ -8,8 +8,9 @@
 		"start": "next start",
 		"lint": "prettier --check . && next lint",
 		"format": "prettier --write .",
-		"db-migrate": "npx drizzle-kit generate:pg && npx tsx ./src/data/db/migrate.ts",
-		"studio": "npx drizzle-kit studio"
+		"db-generate": "npx drizzle-kit generate:pg",
+		"db-migrate": "npx tsx ./src/data/db/migrate.ts",
+		"db-studio": "npx drizzle-kit studio"
 	},
 	"dependencies": {
 		"@headlessui/react": "^1.7.19",
