@@ -1,21 +1,24 @@
 "use client";
 
 import { User } from "@/data/model/user";
+import { useAlert } from "@/utils/alert";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { Button, IconButton, Table, TableBodyCell, TableLegend } from "../common";
+import { Alert, Button, IconButton, Table, TableBodyCell, TableLegend } from "../common";
 import { DeleteUserModal } from "./DeleteUserModal";
 import { UserFormModal } from "./UserFormModal";
 
 export interface UserTableProps {
 	data: User[];
-	onCreate?: (user: User) => void;
-	onEdit?: (user: User) => void;
-	onDelete?: (user: User) => void;
+	onCreate?: (user: User) => Promise<void>;
+	onEdit?: (user: User) => Promise<void>;
+	onDelete?: (user: User) => Promise<void>;
 }
 
 export const UserTable = ({ data, onCreate, onEdit, onDelete }: UserTableProps) => {
+	const { setAlert } = useAlert();
+
 	const userTableColumns = ["Username", "Mail", "Phone Number", "Skillsets", "Hobby", "Action"];
 
 	const [userFormModal, setUserFormModal] = useState<{
@@ -31,35 +34,48 @@ export const UserTable = ({ data, onCreate, onEdit, onDelete }: UserTableProps) 
 		open: false
 	});
 
-	const handleCreateUser = () => {
-		setUserFormModal({
-			open: true,
-			mode: "create"
-		});
-	};
-	const handleEditUser = (user: User) => {
-		setUserFormModal({
-			open: true,
-			mode: "edit",
-			user
-		});
-	};
-	const handleDeleteUser = (user: User) => {
-		setDeleteModal({ open: true, user });
-	};
-
-	const handleConfirmUserForm = (user: User) => {
+	const handleConfirmUserForm = async (user: User) => {
 		const modeFn = {
 			create: onCreate,
 			edit: onEdit
 		};
 
-		modeFn[userFormModal.mode]?.(user);
+		try {
+			await modeFn[userFormModal.mode]?.(user);
+
+			setAlert(
+				userFormModal.mode === "create" ? "Created successfully!" : "Updated successfully!",
+				"success"
+			);
+		} catch (error) {
+			if (error instanceof Error) {
+				setAlert(error.message, "danger");
+			}
+		}
+	};
+
+	const handleConfirmDeleteUser = async (user: User) => {
+		try {
+			await onDelete?.(user);
+			setAlert("Deleted successfully!", "success");
+		} catch (error) {
+			if (error instanceof Error) {
+				setAlert(error.message, "danger");
+			}
+		}
 	};
 
 	const tableLegend = (
 		<TableLegend title="Freelancer List" description="Manage your freelancer here">
-			<Button onClick={handleCreateUser} className="flex w-24 gap-2">
+			<Button
+				onClick={() => {
+					setUserFormModal({
+						open: true,
+						mode: "create"
+					});
+				}}
+				className="flex w-24 gap-2"
+			>
 				<PlusIcon className="h-5 w-5" aria-hidden="true" />
 				New
 			</Button>
@@ -68,6 +84,8 @@ export const UserTable = ({ data, onCreate, onEdit, onDelete }: UserTableProps) 
 
 	return (
 		<>
+			<Alert />
+
 			<Table legend={tableLegend} columns={userTableColumns}>
 				{data.map((user) => (
 					<tr key={user.id}>
@@ -78,10 +96,19 @@ export const UserTable = ({ data, onCreate, onEdit, onDelete }: UserTableProps) 
 						<TableBodyCell>{user.hobby}</TableBodyCell>
 						<TableBodyCell>
 							<div className="flex gap-1">
-								<IconButton color="alternative" onClick={() => handleEditUser(user)}>
+								<IconButton
+									color="alternative"
+									onClick={() =>
+										setUserFormModal({
+											open: true,
+											mode: "edit",
+											user
+										})
+									}
+								>
 									<PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
 								</IconButton>
-								<IconButton color="red" onClick={() => handleDeleteUser(user)}>
+								<IconButton color="red" onClick={() => setDeleteModal({ open: true, user })}>
 									<TrashIcon className="h-5 w-5" aria-hidden="true" />
 								</IconButton>
 							</div>
@@ -104,7 +131,7 @@ export const UserTable = ({ data, onCreate, onEdit, onDelete }: UserTableProps) 
 				<DeleteUserModal
 					user={deleteModal.user}
 					open={deleteModal.open}
-					onConfirm={onDelete}
+					onConfirm={handleConfirmDeleteUser}
 					onClose={(open) => setDeleteModal({ open, user: undefined })}
 				/>
 			)}
