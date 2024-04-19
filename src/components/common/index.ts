@@ -7,3 +7,4 @@ export { Modal } from "./Modal";
 export { PageHeader } from "./PageHeader";
 export { Table, TableBodyCell, TableHeaderCell, TableLegend } from "./Table";
 export { Textarea } from "./Textarea";
+export { Toggle } from "./Toggle";
