@@ -1,5 +1,6 @@
 import { AlertProvider } from "@/components/core";
 import { DarkModeToggle } from "@/components/core/DarkModeToggle";
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { twMerge } from "tailwind-merge";
@@ -21,6 +22,7 @@ export default function RootLayout({
 		<AlertProvider>
 			<html lang="en">
 				<body className={twMerge("bg-white dark:bg-gray-900", inter.className)}>
+					<Analytics />
 					<DarkModeToggle />
 					{children}
 				</body>
