@@ -1,7 +1,7 @@
-import { InferType, date, object, string } from "yup";
+import { InferType, date, number, object, string } from "yup";
 
 export const UserSchema = object({
-	id: string().uuid(),
+	id: string(),
 	username: string().required(),
 	mail: string().email().required(),
 	phoneNumber: string()
